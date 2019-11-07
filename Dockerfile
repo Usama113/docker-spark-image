@@ -1,25 +1,40 @@
-FROM ubuntu:14.04
 
 
-LABEL authors="pavanpkulkarni@pavanpkulkarni.com"
 
-RUN apt-get update
+FROM picoded/ubuntu-base
 
-# This step will install java 8 on the image
-RUN apt-get install software-properties-common -y \
-&&  apt-add-repository ppa:webupd8team/java -y \
-&&  apt-get update -y \
 
-# this step will agree and install java 8
-&&  echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections \
-&&  echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections \
 
-# this step will install java and supervisor
-&&  apt-get install -y oracle-java8-installer \
-    supervisor
 
-ENV SPARK_VERSION 2.2.1
+
+
+RUN apt-get update && \
+	apt-get install -y openjdk-8-jdk && \
+	apt-get install -y ant && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/* && \
+	rm -rf /var/cache/oracle-jdk8-installer;
+
+
+
+
+
+RUN \
+  apt-get update && \
+  apt-get install -y supervisor && \
+  rm -rf /var/lib/apt/lists/* && \
+  sed -i 's/^\(\[supervisord\]\)$/\1\nnodaemon=true/' /etc/supervisor/supervisord.conf
+
+
+ENV SPARK_VERSION 2.4.4
 ENV HADOOP_VERSION 2.7
+
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+
+
 
 # download and extract Spark 
 RUN wget https://archive.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz \
